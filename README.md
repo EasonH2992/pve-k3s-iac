@@ -15,7 +15,7 @@ Proxmox VE (192.168.0.254)
 └── k3s-node-03 (192.168.0.203)  → k3s agent
 ```
 
-## 前置條件
+## 前置
 
 - Proxmox VE 已建好 VM 模板（ID 9000，Ubuntu cloud image）
 - Windows 已安裝 Terraform
@@ -32,13 +32,13 @@ Proxmox VE (192.168.0.254)
 
 ```powershell
 cd D:\VScode\pve-k3s-iac
-terraform init   # 第一次需要
+terraform init   
 terraform apply
 ```
 
-輸入 `yes` 確認，等待 3 台 VM 建立完成。Cloud-Init 初始化約需 1~2 分鐘。
+輸入 `yes` 確認。
 
-### 2. 安裝 Ansible（WSL Ubuntu，第一次才需要）
+### 2. 安裝 Ansible
 
 ```bash
 sudo apt update && sudo apt install -y software-properties-common
@@ -47,7 +47,7 @@ sudo apt install -y ansible
 ansible-galaxy collection install -r collections/requirements.yml
 ```
 
-### 3. 設定 SSH 金鑰（WSL Ubuntu，重新開機後需重做）
+### 3. 設定 SSH 金鑰
 
 ```bash
 mkdir -p ~/.ssh
@@ -62,7 +62,7 @@ cd /mnt/d/VScode/pve-k3s-iac/k3s-ansible
 ANSIBLE_ROLES_PATH=./roles ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.yml playbooks/site.yml --private-key ~/.ssh/id_rsa
 ```
 
-### 5. 驗證叢集
+### 5. 驗證
 
 ```bash
 ssh -i ~/.ssh/id_rsa ubuntu@192.168.0.201 "sudo kubectl get nodes"
@@ -77,9 +77,25 @@ k3s-node-02   Ready    <none>                 ...   v1.31.12+k3s1
 k3s-node-03   Ready    <none>                 ...   v1.31.12+k3s1
 ```
 
+### 6. 將本地（WSL）與叢集連線
+```
+# 1. 在本地建立 .kube 資料夾
+mkdir -p ~/.kube
+
+# 2. 從遠端 Master 節點複製 kubeconfig 檔案過來
+ssh -i ~/.ssh/id_rsa ubuntu@192.168.0.201 "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config
+
+# 3. 修改權限，保護憑證
+chmod 600 ~/.kube/config
+
+# 4. 將設定檔中的 127.0.0.1 改為 Master 的真實 IP
+# (在 Linux/WSL 上執行這行)
+sed -i 's/127.0.0.1/192.168.0.201/g' ~/.kube/config
+```
+
 ---
 
-## 刪除與重建（體驗 IaC）
+## 刪除與重建
 
 ```powershell
 # 刪除全部 VM
