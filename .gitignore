@@ -1,0 +1,10 @@
+# 敏感設定（含 API token、SSH 公鑰）
+main.tf
+
+# Terraform state（含資源 ID 等環境資訊）
+terraform.tfstate
+terraform.tfstate.backup
+
+# Terraform 快取
+.terraform/
+.terraform.lock.hcl

@@ -1,0 +1,72 @@
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "bpg/proxmox"
+      version = "0.71.0"
+    }
+  }
+}
+
+provider "proxmox" {
+  endpoint = "https://<PVE_IP>:8006/"
+
+  api_token = "<USER>@pam!<TOKEN_ID>=<TOKEN_SECRET>"
+
+  insecure  = true
+}
+
+# 使用 count = 3 一次產生 3 台虛擬機
+resource "proxmox_virtual_environment_vm" "k3s_nodes" {
+  count       = 3
+
+  # 產生的名稱分別為：k3s-node-01, k3s-node-02, k3s-node-03
+  name      = "k3s-node-0${count.index + 1}"
+  node_name = "<PVE_NODE_NAME>" # 例如 pve 或 pve1
+
+  # 複製你剛剛做好的 9000 號 Ubuntu 模板
+  clone {
+    vm_id = 9000
+  }
+
+  cpu {
+    cores = 1
+    type  = "host"
+  }
+
+  memory {
+    # 索引 0 (第一台) 1536MB，其餘 (第二、三台) 1024MB
+    dedicated = count.index == 0 ? 1536 : 1024
+  }
+
+  network_device {
+    bridge = "vmbr0"
+  }
+
+  disk {
+    datastore_id = "<DATASTORE_ID>"   # 例如 NAS 或 local-lvm
+    file_id      = "local-lvm:iso/noble-server-cloudimg-amd64.img"
+    interface    = "scsi0"
+    size         = 20
+  }
+
+  # Cloud-Init 自動化設定
+  initialization {
+    datastore_id = "<DATASTORE_ID>"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.<SUBNET>.${201 + count.index}/24"
+        gateway = "192.168.<SUBNET>.1"
+      }
+    }
+
+    user_account {
+      username = "ubuntu"
+
+      # 貼上你的 SSH 公鑰（cat ~/.ssh/id_rsa.pub）
+      keys = [
+        "<YOUR_SSH_PUBLIC_KEY>",
+      ]
+    }
+  }
+}
