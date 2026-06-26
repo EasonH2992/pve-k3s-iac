@@ -55,8 +55,8 @@ resource "proxmox_virtual_environment_vm" "k3s_nodes" {
 
     ip_config {
       ipv4 {
-        address = "192.168.<SUBNET>.${201 + count.index}/24"
-        gateway = "192.168.<SUBNET>.1"
+        address = "192.168.0.${201 + count.index}/24"
+        gateway = "192.168.0.1"
       }
     }
 
