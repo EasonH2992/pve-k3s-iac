@@ -37,6 +37,7 @@ terraform apply
 ```
 
 輸入 `yes` 確認。
+![PVE-VM-Created](assets/1.png)
 
 ### 2. 安裝 Ansible
 
@@ -61,6 +62,7 @@ chmod 600 ~/.ssh/id_rsa
 cd /mnt/d/VScode/pve-k3s-iac/k3s-ansible
 ANSIBLE_ROLES_PATH=./roles ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.yml playbooks/site.yml --private-key ~/.ssh/id_rsa
 ```
+![K3s-Cluster-Deployed](assets/2.png)
 
 ### 5. 驗證
 
@@ -92,7 +94,7 @@ chmod 600 ~/.kube/config
 # (在 Linux/WSL 上執行這行)
 sed -i 's/127.0.0.1/192.168.0.201/g' ~/.kube/config
 ```
-
+![K3s-Fully-Ready](assets/3.png)
 ---
 
 ## 刪除與重建
